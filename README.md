@@ -4,4 +4,4 @@ This project contains embedded python and python scripts for communication with 
 
 ### Dependencies
 
--Communication for PLC used is [pycomm3](https://github.com/ottowayi/pycomm3). 
+- Communication for PLC used is [pycomm3](https://github.com/ottowayi/pycomm3). 
