@@ -27,6 +27,8 @@ class Config:
         self._CPURunning = False
         self._PanelviewIPAddress = ''
         self._FTPRunning = False
+        self._FTPUser = ''
+        self._FTPPassword = ''
         self._LastFTPUpdate = 0
         self._CloudWatchdogRunning = False
         self._AppKey = ''
@@ -58,6 +60,8 @@ class Config:
         self._AppKey = self._configData['Config']['AppKey']
         self._AuditTrailStream = self._configData['Config']['AuditTrailStream']
         self._ConnTestAppKey = self._configData['Config']['ConnTestAppKey']
+        self._FTPUser = self._configData['Config']['FTPUser']
+        self._FTPPassword = self._configData['Config']['FTPPassword']
         self.Tags = self._configData['Tags']
         return self._configData
 
@@ -130,7 +134,7 @@ class Config:
             except: 
                 pass  
         try: # FTP panelview, copy files over, then delete files from panelview
-            ftp = FTP(self._PanelviewIPAddress, 'sanimatic', 'Tunn3lwa5h')
+            ftp = FTP(self._PanelviewIPAddress, self._FTPUser, self._FTPPassword)
             for fileName in ftp.nlst():
                 newFile = ftpDirectory + '/' + fileName
                 with open(newFile, 'wb') as fileHandle:
