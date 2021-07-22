@@ -71,7 +71,10 @@ def main():
         except CommError:
             PLCErrorCount += 1
             print(f'Communication Error! Fail Count: {PLCErrorCount}')
-            time.sleep(10)
+            if PLCErrorCount < 6:
+                time.sleep(10)
+            else:
+                time.sleep(30)
             PLC = LogixDriver(SaniTrend.IPAddress)
 
         except KeyboardInterrupt:
