@@ -1,6 +1,7 @@
 import SaniTrendCloud
 import time
 import os
+from datetime import datetime
 from pycomm3 import LogixDriver
 from pycomm3.exceptions import CommError
     
@@ -13,6 +14,7 @@ def main():
     PLC = LogixDriver(SaniTrend.PLCIPAddress)
 
     PLCErrorCount = 0
+    lastClockUpdate = 0
     runCode = True
 
     while runCode:
@@ -49,6 +51,12 @@ def main():
                         )
                     )
                 )
+
+                # Update PLC Clock to PC time
+                currentMinute = datetime.now().minute
+                if currentMinute != lastClockUpdate:
+                    PLC.set_plc_time()
+                    lastClockUpdate = currentMinute
  
                 # Check for reboot request
                 reboot = SaniTrend.GetTagValue(TagData=tagData, TagName='STC_Reboot_Command')
