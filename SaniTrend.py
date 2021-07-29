@@ -83,7 +83,7 @@ def main():
                 time.sleep(10)
             else:
                 time.sleep(30)
-            PLC = LogixDriver(SaniTrend.IPAddress)
+            PLC = LogixDriver(SaniTrend.PLCIPAddress)
 
         except KeyboardInterrupt:
             print("\n\nExiting Python and closing PLC connection...\n\n\n")
