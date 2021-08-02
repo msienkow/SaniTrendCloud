@@ -1,12 +1,11 @@
 import platform
 import json
+from pycomm3.exceptions import CommError
 import threading
 import time
 
 from requests.models import HTTPError
-from pycomm3.exceptions import CommError
-import requests 
-from requests.exceptions import RequestException, Timeout
+import requests
 import os
 from ftplib import FTP
 import shutil
@@ -96,16 +95,18 @@ class Config:
     def _CloudWatchdog(self,):
         url = self.ServerURL + 'Things/Connection_Test/Services/ConnectionTest'
         try:
-            serviceResult = self._CloudWatchdogSession.post(url, headers=self._CloudWatchdogHeaders)
+            serviceResult = self._CloudWatchdogSession.post(url, headers=self._CloudWatchdogHeaders, timeout=5)
             if serviceResult.status_code == 200:
                 self.CloudWatchdogValue = (serviceResult.json())['rows'][0]['result']
                 self._LastWatchdogUpdate = self.GetTimeMS()
             else:
+                self.LogErrorToFile(f'_CloudWatchdog - {serviceResult}')
                 self.CloudWatchdogValue = 0
-        except RequestException as e:
-            self.CloudWatchdogValue = 0
-            self._LogErrorToFile(e)
 
+        except Exception as e:
+            self.CloudWatchdogValue = 0
+            self.LogErrorToFile(e)
+            
         # Release Bit so watchdog can run again
         self._CloudWatchdogRunning = False
 
@@ -211,10 +212,11 @@ class Config:
         self.CPUPercent = psutil.cpu_percent(2)
         self._CPURunning = False
 
-    # Class to log errors to file for investigation
-    def _LogErrorToFile(self, error):
-        writepath = 'Errors.log'
-        mode = 'a' if os.path.exists(writepath) else 'w'
-        with open('Errors.log', mode) as f:
-            f.write(error)
+
+    def LogErrorToFile(self, error):
+        writepath = '../Errors.log'
+        mode = 'a+' if os.path.exists(writepath) else 'w+'
+        with open(writepath, mode) as f:
+            f.write(str(error))
             f.write('\n\n')
+            print(error)
