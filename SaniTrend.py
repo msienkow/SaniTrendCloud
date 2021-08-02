@@ -79,6 +79,7 @@ def main():
         except CommError:
             PLCErrorCount += 1
             print(f'Communication Error! Fail Count: {PLCErrorCount}')
+            SaniTrend.LogErrorToFile('PLC Comms Failed', CommError)
             if PLCErrorCount < 6:
                 time.sleep(10)
             else:
