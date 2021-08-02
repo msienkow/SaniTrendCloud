@@ -2,9 +2,11 @@ import platform
 import json
 import threading
 import time
+
+from requests.models import HTTPError
 from pycomm3.exceptions import CommError
 import requests 
-from requests.exceptions import Timeout
+from requests.exceptions import RequestException, Timeout
 import os
 from ftplib import FTP
 import shutil
@@ -100,12 +102,10 @@ class Config:
                 self._LastWatchdogUpdate = self.GetTimeMS()
             else:
                 self.CloudWatchdogValue = 0
-        except ConnectionError:
+        except RequestException as e:
             self.CloudWatchdogValue = 0
-        except ConnectionRefusedError:
-            self.CloudWatchdogValue = 0
-        except Timeout:
-            self.CloudWatchdogValue = 0
+            self._LogErrorToFile(e)
+
         # Release Bit so watchdog can run again
         self._CloudWatchdogRunning = False
 
@@ -141,8 +141,8 @@ class Config:
                     ftp.retrbinary('RETR %s' % fileName, fileHandle.write)
                 ftp.delete(fileName)
             ftp.quit()
-        except:
-            pass
+        except Exception as e:
+            self._LogErrorToFile(e)
         self._AuditTrailUpload()
         self._FTPRunning = False
         
@@ -194,7 +194,8 @@ class Config:
             if result.status_code == 200:
                 shutil.move(fileName, auditTrailArchives)
 
-        except:
+        except Exception as e:
+            self._LogErrorToFile(e)
             print('FTP Upload Failed')
             pass
 
@@ -209,3 +210,11 @@ class Config:
     def _GetCPUUsage(self,):
         self.CPUPercent = psutil.cpu_percent(2)
         self._CPURunning = False
+
+    # Class to log errors to file for investigation
+    def _LogErrorToFile(self, error):
+        writepath = 'Errors.log'
+        mode = 'a' if os.path.exists(writepath) else 'w'
+        with open('Errors.log', mode) as f:
+            f.write(error)
+            f.write('\n\n')
