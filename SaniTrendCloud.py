@@ -3,7 +3,7 @@ import json
 from pycomm3.exceptions import CommError
 import threading
 import time
-
+from datetime import datetime
 from requests.models import HTTPError
 import requests
 import os
@@ -88,6 +88,7 @@ class Config:
         timerPreset = self.CloudWatchdogTime * 1000
         if (((self.GetTimeMS() - self._LastWatchdogUpdate) >= timerPreset) and not self._CloudWatchdogRunning):
             self._CloudWatchdogRunning = True
+            self._LastWatchdogUpdate = self.GetTimeMS()
             threading.Thread(target=self._CloudWatchdog).start()
 
     # Run RESTApi POST service to get current server time seconds
@@ -98,14 +99,14 @@ class Config:
             serviceResult = self._CloudWatchdogSession.post(url, headers=self._CloudWatchdogHeaders, timeout=5)
             if serviceResult.status_code == 200:
                 self.CloudWatchdogValue = (serviceResult.json())['rows'][0]['result']
-                self._LastWatchdogUpdate = self.GetTimeMS()
+                
             else:
-                self.LogErrorToFile(f'_CloudWatchdog - {serviceResult}')
+                self.LogErrorToFile('_CloudWatchdog', serviceResult)
                 self.CloudWatchdogValue = 0
 
         except Exception as e:
             self.CloudWatchdogValue = 0
-            self.LogErrorToFile(e)
+            self.LogErrorToFile('_CloudWatchdog', e)
             
         # Release Bit so watchdog can run again
         self._CloudWatchdogRunning = False
@@ -143,7 +144,8 @@ class Config:
                 ftp.delete(fileName)
             ftp.quit()
         except Exception as e:
-            self._LogErrorToFile(e)
+            self.LogErrorToFile('AuditTrailFTP', e)
+        time.sleep(30)
         self._AuditTrailUpload()
         self._FTPRunning = False
         
@@ -196,7 +198,7 @@ class Config:
                 shutil.move(fileName, auditTrailArchives)
 
         except Exception as e:
-            self._LogErrorToFile(e)
+            self.LogErrorToFile('_AuditTrailUploadFile', e)
             print('FTP Upload Failed')
             pass
 
@@ -213,10 +215,24 @@ class Config:
         self._CPURunning = False
 
 
-    def LogErrorToFile(self, error):
-        writepath = '../Errors.log'
-        mode = 'a+' if os.path.exists(writepath) else 'w+'
-        with open(writepath, mode) as f:
-            f.write(str(error))
-            f.write('\n\n')
-            print(error)
+    def LogErrorToFile(self, name, error):
+        errorTopDirectory = f'../ErrorLogs'
+        errorYear = str(datetime.now().year)
+        errorYearDirectory  = os.path.join(errorTopDirectory, errorYear)
+        errorMonth = datetime.now().strftime('%B')
+        errorMonthDirectory = os.path.join(errorYearDirectory, errorMonth)
+        directories = [errorTopDirectory, errorYearDirectory, errorMonthDirectory]
+        # Try to create directories, if they exists move on
+        for directory in directories:
+            try:
+                os.mkdir(directory)
+            except: 
+                pass
+        
+        errorLog = f'STC_Errors_{datetime.now().year}{datetime.now().month}{datetime.now().day}.log'
+        writePath = os.path.join(errorMonthDirectory, errorLog)
+        mode = 'a+' if os.path.exists(writePath) else 'w+'
+        with open(writePath, mode) as f:
+            f.write(f'{datetime.now()} {name} {error}\n')
+        
+        print(f'{datetime.now()} {name} {error}\n')
