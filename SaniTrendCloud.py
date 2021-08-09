@@ -230,20 +230,12 @@ class Config:
             except: 
                 pass
 
-        day = currentDateTime.day
-        month = currentDateTime.month
-
-        if day < 10:
-            day = f'0{day}'
-
-        if month < 10:
-            month = f'0{month}'
-
-        
+        day = currentDateTime.day if currentDateTime.day < 10 else f'0{currentDateTime.day}'
+        month = currentDateTime.month if currentDateTime.month < 10 else f'0{currentDateTime.month}'
         errorLog = f'STC_Errors_{datetime.now().year}{month}{day}.log'
         writePath = os.path.join(errorMonthDirectory, errorLog)
         mode = 'a+' if os.path.exists(writePath) else 'w+'
         with open(writePath, mode) as f:
-            f.write(f'{currentDateTime} {name} {error}\n')
+            f.write(f'{currentDateTime},{name},{error}\n')
         
         print(f'{currentDateTime},{name},{error}\n')
