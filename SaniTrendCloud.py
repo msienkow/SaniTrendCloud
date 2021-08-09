@@ -217,9 +217,10 @@ class Config:
 
     def LogErrorToFile(self, name, error):
         errorTopDirectory = f'../ErrorLogs'
-        errorYear = str(datetime.now().year)
+        currentDateTime = datetime.now()
+        errorYear = str(currentDateTime.year)
         errorYearDirectory  = os.path.join(errorTopDirectory, errorYear)
-        errorMonth = datetime.now().strftime('%B')
+        errorMonth = currentDateTime.strftime('%B')
         errorMonthDirectory = os.path.join(errorYearDirectory, errorMonth)
         directories = [errorTopDirectory, errorYearDirectory, errorMonthDirectory]
         # Try to create directories, if they exists move on
@@ -228,11 +229,21 @@ class Config:
                 os.mkdir(directory)
             except: 
                 pass
+
+        day = currentDateTime.day
+        month = currentDateTime.month
+
+        if day < 10:
+            day = f'0{day}'
+
+        if month < 10:
+            month = f'0{month}'
+
         
-        errorLog = f'STC_Errors_{datetime.now().year}{datetime.now().month}{datetime.now().day}.log'
+        errorLog = f'STC_Errors_{datetime.now().year}{month}{day}.log'
         writePath = os.path.join(errorMonthDirectory, errorLog)
         mode = 'a+' if os.path.exists(writePath) else 'w+'
         with open(writePath, mode) as f:
-            f.write(f'{datetime.now()} {name} {error}\n')
+            f.write(f'{currentDateTime} {name} {error}\n')
         
-        print(f'{datetime.now()} {name} {error}\n')
+        print(f'{currentDateTime},{name},{error}\n')
