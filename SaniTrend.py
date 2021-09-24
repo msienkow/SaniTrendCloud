@@ -61,6 +61,7 @@ def main():
                 # Check for reboot request
                 reboot = SaniTrend.GetTagValue(TagData=tagData, TagName='STC_Reboot_Command')
                 if reboot and SaniTrend._OS == 'Windows':
+                    runCode = False
                     PLC.close()
                     time.sleep(5)                  
                     os.system('shutdown /r /t 1')
