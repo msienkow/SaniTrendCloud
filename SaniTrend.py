@@ -60,14 +60,17 @@ def main():
  
                 # Check for reboot request
                 reboot = SaniTrend.GetTagValue(TagData=tagData, TagName='Program:SaniTrendCloud.STC_Reboot_Command')
-                if reboot and SaniTrend._OS == 'Windows':
+                if reboot:
                     runCode = False
+                    PLC.write((
+                        'Program:SaniTrendCloud.STC_Reboot_Response',
+                        2
+                    ))
                     PLC.close()
-                    time.sleep(5)                  
-                    os.system('shutdown /r /t 1')
-
-                elif reboot and SaniTrend._osType == 'Linux':
-                    pass
+                    time.sleep(5) 
+                    
+                    if SaniTrend._OS == 'Windows':                
+                        os.system('shutdown /r /t 1')
 
                 # Reset PLC error count if everything succeeded
                 PLCErrorCount = 0
