@@ -36,18 +36,18 @@ def main():
                 # Write tag data to PLC
                 PLC.write(
                     (
-                        'STC_Server_Seconds', 
+                        'Program:SaniTrendCloud.STC_Server_Seconds', 
                         SaniTrend.CloudWatchdogValue
                     ),
                     (
-                        'STC_CPU_Usage', 
+                        'Program:SaniTrendCloud.STC_CPU_Usage', 
                         SaniTrend.CPUPercent
                     ),
                     (
-                        'STC_SaniTrend_Watchdog',
+                        'Program:SaniTrendCloud.STC_SaniTrend_Watchdog',
                         SaniTrend.GetTagValue(
                             TagData=tagData, 
-                            TagName='STC_PLC_Watchdog'
+                            TagName='Program:SaniTrendCloud.STC_PLC_Watchdog'
                         )
                     )
                 )
@@ -59,7 +59,7 @@ def main():
                     lastClockUpdate = currentMinute
  
                 # Check for reboot request
-                reboot = SaniTrend.GetTagValue(TagData=tagData, TagName='STC_Reboot_Command')
+                reboot = SaniTrend.GetTagValue(TagData=tagData, TagName='Program:SaniTrendCloud.STC_Reboot_Command')
                 if reboot and SaniTrend._OS == 'Windows':
                     runCode = False
                     PLC.close()
