@@ -16,10 +16,3 @@ $ python -m pip install pycomm3
 ```console
 $ python -m pip install requests
 ```
-
-
-- [psutil](https://github.com/giampaolo/psutil) - For System Performance Information.
-
-```console
-$ python -m pip install psutil
-```
