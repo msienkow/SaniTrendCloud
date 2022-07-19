@@ -1,6 +1,6 @@
 # SaniTrend™ Cloud
 
-This project contains embedded python and python scripts for communication with Allen-Bradley PLC's and PTC Thingworx.
+This project contains embedded python and python scripts for communication with Allen-Bradley PLCs and PTC Thingworx.
 
 ### Dependencies
 
