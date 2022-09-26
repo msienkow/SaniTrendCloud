@@ -57,10 +57,10 @@ def main():
                 )
 
                 # Update PLC Clock to PC time
-                currentMinute = datetime.now().minute
-                if currentMinute != lastClockUpdate:
-                    PLC.set_plc_time()
-                    lastClockUpdate = currentMinute
+                # currentMinute = datetime.now().minute
+                # if currentMinute != lastClockUpdate:
+                #     PLC.set_plc_time()
+                #     lastClockUpdate = currentMinute
  
                 # Check for reboot request
                 reboot = SaniTrend.GetTagValue(TagData=tagData, TagName='Program:SaniTrendCloud.STC_Reboot_Command')
