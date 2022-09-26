@@ -1,5 +1,5 @@
-#test
 import platform
+import socket
 import json
 from pycomm3.exceptions import CommError
 import threading
@@ -17,6 +17,7 @@ import psutil
 class Config:
     def __init__(self, *, ConfigFile=''):
         self.PLCIPAddress = ''
+        self.PCIPAddress = ''
         self.AuditTrail = False
         self.Tags = []
         self.ServerURL = ''
@@ -91,6 +92,7 @@ class Config:
             self._CloudWatchdogRunning = True
             self._LastWatchdogUpdate = self.GetTimeMS()
             threading.Thread(target=self._CloudWatchdog).start()
+            threading.Thread(target=self._GetIPAddress).start()
 
     # Run RESTApi POST service to get current server time seconds
     # Using number value more accurate than just boolean on/off
@@ -112,6 +114,9 @@ class Config:
         # Release Bit so watchdog can run again
         self._CloudWatchdogRunning = False
 
+
+    def _GetIPAddress(self,):
+        self.PCIPAddress = socket.gethostbyname(self.Hostname)
 
     # Wrapper to call FTP function on a time basis
     # Wrapper starts function in seperate thread as to not block PLC comms

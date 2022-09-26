@@ -44,6 +44,10 @@ def main():
                         SaniTrend.CPUPercent
                     ),
                     (
+                        'Program:SaniTrendCloud.STC_PC_IP_Address',
+                        SaniTrend.PCIPAddress
+                    ),
+                    (
                         'Program:SaniTrendCloud.STC_SaniTrend_Watchdog',
                         SaniTrend.GetTagValue(
                             TagData=tagData, 
