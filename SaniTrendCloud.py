@@ -116,7 +116,8 @@ class Config:
 
 
     def _GetIPAddress(self,):
-        self.PCIPAddress = socket.gethostbyname(self.Hostname)
+        hostname = socket.gethostname()
+        self.PCIPAddress = socket.gethostbyname(hostname)
 
     # Wrapper to call FTP function on a time basis
     # Wrapper starts function in seperate thread as to not block PLC comms
