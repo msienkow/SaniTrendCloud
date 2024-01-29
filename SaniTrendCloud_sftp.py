@@ -195,7 +195,7 @@ class Config:
             'appKey': self._AppKey
         }
         try:
-            with open(fileName, 'r', newline='') as CSVData:
+            with open(fileName, 'r', newline='', encoding='utf-8-sig') as CSVData:
                 auditTrail = CSVData.read()
 
             payload = {
