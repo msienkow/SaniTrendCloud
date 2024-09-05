@@ -4,6 +4,7 @@ import aiohttp
 from dataclasses import dataclass, field
 import json
 
+
 async def twx_request(request_type: str, url: str, response_type: str = 'json', data: list = [], timeout: int = 5) -> any:
     """Process Thingworx REST requests
 
