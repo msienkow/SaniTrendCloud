@@ -1,5 +1,5 @@
-#test
 import platform
+import socket
 import json
 from pycomm3.exceptions import CommError
 import threading
@@ -11,13 +11,13 @@ import os
 from ftplib import FTP
 import shutil
 import psutil
-import pysftp
 
 # Overall Configuration Class to import that has 
 # auxillary functions necesaary for the cloud
 class Config:
     def __init__(self, *, ConfigFile=''):
         self.PLCIPAddress = ''
+        self.PCIPAddress = ''
         self.AuditTrail = False
         self.Tags = []
         self.ServerURL = ''
@@ -92,6 +92,7 @@ class Config:
             self._CloudWatchdogRunning = True
             self._LastWatchdogUpdate = self.GetTimeMS()
             threading.Thread(target=self._CloudWatchdog).start()
+            threading.Thread(target=self._GetIPAddress).start()
 
     # Run RESTApi POST service to get current server time seconds
     # Using number value more accurate than just boolean on/off
@@ -113,6 +114,10 @@ class Config:
         # Release Bit so watchdog can run again
         self._CloudWatchdogRunning = False
 
+
+    def _GetIPAddress(self,):
+        hostname = socket.gethostname()
+        self.PCIPAddress = socket.gethostbyname(hostname)
 
     # Wrapper to call FTP function on a time basis
     # Wrapper starts function in seperate thread as to not block PLC comms
@@ -137,26 +142,14 @@ class Config:
                 os.mkdir(directory)
             except: 
                 pass  
-##        try: # FTP panelview, copy files over, then delete files from panelview
-##            ftp = FTP(self._PanelviewIPAddress, self._FTPUser, self._FTPPassword)
-##            for fileName in ftp.nlst():
-##                newFile = ftpDirectory + '/' + fileName
-##                with open(newFile, 'wb') as fileHandle:
-##                    ftp.retrbinary('RETR %s' % fileName, fileHandle.write)
-##                ftp.delete(fileName)
-##            ftp.quit()
-##        except Exception as e:
-##            self.LogErrorToFile('AuditTrailFTP', e)
-        try:
-            cnopts = pysftp.CnOpts()
-            cnopts.hostkeys = None 
-            with pysftp.Connection(self._PanelviewIPAddress, username=self._FTPUser, password=self._FTPPassword, cnopts=cnopts) as sftp:
-                with sftp.cd('AuditTrail'):
-                    files = sftp.listdir()
-                    for file in files:
-                        localpath = f'AuditTrail/{file}'
-                        sftp.get(file, localpath = localpath)
-                        sftp.remove(file)
+        try: # FTP panelview, copy files over, then delete files from panelview
+            ftp = FTP(self._PanelviewIPAddress, self._FTPUser, self._FTPPassword)
+            for fileName in ftp.nlst():
+                newFile = ftpDirectory + '/' + fileName
+                with open(newFile, 'wb') as fileHandle:
+                    ftp.retrbinary('RETR %s' % fileName, fileHandle.write)
+                ftp.delete(fileName)
+            ftp.quit()
         except Exception as e:
             self.LogErrorToFile('AuditTrailFTP', e)
         time.sleep(30)

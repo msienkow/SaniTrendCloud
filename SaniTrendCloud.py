@@ -11,6 +11,7 @@ import os
 from ftplib import FTP
 import shutil
 import psutil
+import pysftp
 
 # Overall Configuration Class to import that has 
 # auxillary functions necesaary for the cloud
@@ -28,7 +29,7 @@ class Config:
         self.CPUPercent = 0.0
         self._ConnTestAppKey = ''
         self._CPURunning = False
-        self._PanelviewIPAddress = ''
+        self._LocalPanelviewIPAddress = ''
         self._FTPRunning = False
         self._FTPUser = ''
         self._FTPPassword = ''
@@ -59,7 +60,7 @@ class Config:
         self.ServerURL = self._configData['Config']['ServerURL']
         self.SMINumber = self._configData['Config']['SMINumber']
         self._FileRepo = self._configData['Config']['FileRepository']
-        self._PanelviewIPAddress = self._configData['Config']['PanelviewIPAddress']
+        self._LocalPanelviewIPAddress = self._configData['Config']['PanelviewIPAddress']
         self._AppKey = self._configData['Config']['AppKey']
         self._AuditTrailStream = self._configData['Config']['AuditTrailStream']
         self._ConnTestAppKey = self._configData['Config']['ConnTestAppKey']
@@ -141,15 +142,18 @@ class Config:
             try:
                 os.mkdir(directory)
             except: 
-                pass  
-        try: # FTP panelview, copy files over, then delete files from panelview
-            ftp = FTP(self._PanelviewIPAddress, self._FTPUser, self._FTPPassword)
-            for fileName in ftp.nlst():
-                newFile = ftpDirectory + '/' + fileName
-                with open(newFile, 'wb') as fileHandle:
-                    ftp.retrbinary('RETR %s' % fileName, fileHandle.write)
-                ftp.delete(fileName)
-            ftp.quit()
+                pass
+
+        try:
+            cnopts = pysftp.CnOpts()
+            cnopts.hostkeys = None 
+            with pysftp.Connection(self._LocalPanelviewIPAddress, username=self._FTPUser, password=self._FTPPassword, cnopts=cnopts) as sftp:
+                with sftp.cd('AuditTrail'):
+                    files = sftp.listdir()
+                    for file in files:
+                        localpath = f'AuditTrail/{file}'
+                        sftp.get(file, localpath = localpath)
+                        sftp.remove(file)
         except Exception as e:
             self.LogErrorToFile('AuditTrailFTP', e)
         time.sleep(30)
