@@ -24,12 +24,12 @@ class Config:
         self.ServerURL = ''
         self.CloudWatchdogTime = 10
         self.CloudWatchdogValue = 0
-        self.Panelviews = []
         self.FTPTimerPreset = 120
         self.SMINumber = ''
         self.CPUPercent = 0.0
         self._ConnTestAppKey = ''
         self._CPURunning = False
+        self._LocalPanelviewIPAddress = ''
         self._FTPRunning = False
         self._FTPUser = ''
         self._FTPPassword = ''
@@ -60,7 +60,7 @@ class Config:
         self.ServerURL = self._configData['Config']['ServerURL']
         self.SMINumber = self._configData['Config']['SMINumber']
         self._FileRepo = self._configData['Config']['FileRepository']
-        self.Panelviews.append(self._configData['Config']['PanelviewIPAddress'])
+        self._LocalPanelviewIPAddress = self._configData['Config']['PanelviewIPAddress']
         self._AppKey = self._configData['Config']['AppKey']
         self._AuditTrailStream = self._configData['Config']['AuditTrailStream']
         self._ConnTestAppKey = self._configData['Config']['ConnTestAppKey']
@@ -144,19 +144,18 @@ class Config:
             except: 
                 pass
 
-        for panelview in self.Panelviews:
-            try:
-                cnopts = pysftp.CnOpts()
-                cnopts.hostkeys = None 
-                with pysftp.Connection(panelview, username=self._FTPUser, password=self._FTPPassword, cnopts=cnopts) as sftp:
-                    with sftp.cd('AuditTrail'):
-                        files = sftp.listdir()
-                        for file in files:
-                            localpath = f'AuditTrail/{file}'
-                            sftp.get(file, localpath = localpath)
-                            sftp.remove(file)
-            except Exception as e:
-                self.LogErrorToFile('AuditTrailFTP', e)
+        try:
+            cnopts = pysftp.CnOpts()
+            cnopts.hostkeys = None 
+            with pysftp.Connection(self._LocalPanelviewIPAddress, username=self._FTPUser, password=self._FTPPassword, cnopts=cnopts) as sftp:
+                with sftp.cd('AuditTrail'):
+                    files = sftp.listdir()
+                    for file in files:
+                        localpath = f'AuditTrail/{file}'
+                        sftp.get(file, localpath = localpath)
+                        sftp.remove(file)
+        except Exception as e:
+            self.LogErrorToFile('AuditTrailFTP', e)
         time.sleep(30)
         self._AuditTrailUpload()
         self._FTPRunning = False

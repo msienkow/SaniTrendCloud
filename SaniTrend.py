@@ -10,6 +10,11 @@ def main():
     # Set up SaniTrend parameters, tags, cloud configurations, etc...
     SaniTrend = SaniTrendCloud.Config(ConfigFile='SaniTrendConfig.json')
 
+    # Add another Panelview IP address to get audit trail files from
+    # in a multi-panelview setup by adding the ip address and uncommenting the
+    # following line of code.
+    # SaniTrend.Panelviews.append('ip address goes here')
+
     # Setup PLC Communication Driver
     PLC = LogixDriver(SaniTrend.PLCIPAddress)
 
